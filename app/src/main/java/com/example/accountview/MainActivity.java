@@ -147,22 +147,28 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             textBalance.setText(balanceText);
         }
         final String MAIL_TEXT = balanceText;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    MailSender sender = new MailSender("dai.jiapeng54@gmail.com",
-                            "W123elcome");
-                    sender.sendMail("Your Account Information",
-                            "Hello " + CLIENT_NAME + ", your account balance is " + MAIL_TEXT + ".",
-                            "dai.jiapeng54@gmail.com", "dai.jiapeng54@gmail.com");
-                    Toast.makeText(MainActivity.this, "Sending account statement to your email",Toast.LENGTH_LONG).show();
-                } catch (Exception e) {
-                    Log.e("SendMail", e.getMessage(), e);
-                    Toast.makeText(MainActivity.this, "Sending mail fails",Toast.LENGTH_LONG).show();
+        try {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        MailSender sender = new MailSender("dai.jiapeng54@gmail.com",
+                                "W123elcome");
+                        sender.sendMail("Your Account Information",
+                                "Hello " + CLIENT_NAME + ", your account balance is " + MAIL_TEXT + ".",
+                                "dai.jiapeng54@gmail.com", "dai.jiapeng54@gmail.com");
+                        //Toast.makeText(MainActivity.this, "Sending account statement to your email",Toast.LENGTH_LONG).show();
+                    } catch (Exception e) {
+                        Log.e("SendMail", e.getMessage(), e);
+                        //Toast.makeText(MainActivity.this, "Sending mail fails",Toast.LENGTH_LONG).show();
+                    }
                 }
-            }
-        }).start();
+            }).start();
+            Toast.makeText(MainActivity.this, "Sending account statement to your email",Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Log.e("SendMail", e.getMessage(), e);
+            Toast.makeText(MainActivity.this, "Sending mail fails",Toast.LENGTH_LONG).show();
+        }
     }
     public void deposit(View view) {
         EditText amount = (EditText) findViewById(R.id.amount);
