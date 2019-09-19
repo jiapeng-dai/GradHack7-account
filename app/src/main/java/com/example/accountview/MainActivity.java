@@ -16,9 +16,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.speech.tts.TextToSpeech;
 import android.widget.Toast;
+
+import org.w3c.dom.Text;
 
 public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener {
     private TextToSpeech tts;
@@ -30,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         setContentView(R.layout.activity_main);
         TextView textHello = (TextView) findViewById(R.id.textHello);
         TextView textBalance = (TextView) findViewById(R.id.textBalance);
+        TableLayout tl = (TableLayout)findViewById(R.id.tableTrac);
         super.onCreate(savedInstanceState);
         MyDBHandler dbHandler = new MyDBHandler(this, null);
         Clients client = new Clients();
@@ -37,10 +42,23 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         client.setClientName(CLIENT_NAME);
         client.setBalance((float)100.0);
         if (dbHandler.findHandler(CLIENT_NAME) == null) {
-            textBalance.setText(String.valueOf(dbHandler.addHandler(client)));
+            dbHandler.addHandler(client);
         }
         textHello.setText("Hello "+ CLIENT_NAME);
-        init();
+
+        TranDBHandler trandbHandler = new TranDBHandler(this,null);
+        ArrayList<String> recentTrans = trandbHandler.loadHandler();
+        if (recentTrans.size() > 0) {
+            for (String tran: recentTrans){
+                TableRow row = new TableRow(this);
+                TextView tv = new TextView(this);
+                tv.setText(tran);
+                tl.addView(row);
+                row.addView(tv);
+            }
+        }
+
+        init(); //init text to speech
     }
 
     public void init() {
@@ -173,11 +191,13 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     public void deposit(View view) {
         EditText amount = (EditText) findViewById(R.id.amount);
         TextView textBalance = (TextView) findViewById(R.id.textBalance);
+        TableLayout tl = (TableLayout)findViewById(R.id.tableTrac);
         int id;
         String name;
         Float balance;
         Float addamount = Float.parseFloat(amount.getText().toString());
         MyDBHandler dbHandler = new MyDBHandler(this, null);
+        TranDBHandler trandbHandler = new TranDBHandler(this,null);
         Clients client = dbHandler.findHandler(CLIENT_NAME);
         if (client != null) {
             id = client.getID();
@@ -192,7 +212,27 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         boolean result = dbHandler.updateHandler(id, name, newbalance);
         if (result) {
             textBalance.setText("$" + newbalance.toString());
-            Toast.makeText(MainActivity.this,"Deposit " + "$" + addamount.toString(),Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this,"Deposit " + "$" + addamount,Toast.LENGTH_LONG).show();
+
+            int numrow = tl.getChildCount();
+            int tid;
+            if (numrow <= 2) {
+                tid = 1;
+            } else {
+                TableRow lastrow = (TableRow) tl.getChildAt(numrow-1);
+                TextView lasttran = (TextView) lastrow.getChildAt(0);
+                tid = Integer.parseInt(lasttran.getText().toString().substring(0,2).trim())+1;
+            }
+            if (numrow >= 10) {
+                tl.removeViewAt(2);
+            }
+            trandbHandler.addHandler(tid,"Deposit",addamount);
+            TableRow row = new TableRow(this);
+            TextView tv = new TextView(this);
+            tv.setText(tid + " Deposit " + "$" + addamount);
+
+            tl.addView(row);
+            row.addView(tv);
         } else {
             Toast.makeText(MainActivity.this,"Deposit failure!",Toast.LENGTH_LONG).show();
         }
@@ -200,11 +240,13 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     public void withdraw(View view) {
         EditText amount = (EditText) findViewById(R.id.amount);
         TextView textBalance = (TextView) findViewById(R.id.textBalance);
+        TableLayout tl = (TableLayout)findViewById(R.id.tableTrac);
         int id;
         String name;
         Float balance;
         Float minusamount = Float.parseFloat(amount.getText().toString());
         MyDBHandler dbHandler = new MyDBHandler(this, null);
+        TranDBHandler trandbHandler = new TranDBHandler(this,null);
         Clients client = dbHandler.findHandler(CLIENT_NAME);
         if (client != null) {
             id = client.getID();
@@ -223,7 +265,28 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         boolean result = dbHandler.updateHandler(id, name, newbalance);
         if (result) {
             textBalance.setText("$" + newbalance.toString());
-            Toast.makeText(MainActivity.this,"Withdraw " + "$" + minusamount.toString(),Toast.LENGTH_LONG).show();
+            Toast.makeText(MainActivity.this,"Withdraw " + "$" + minusamount,Toast.LENGTH_LONG).show();
+
+
+            int numrow = tl.getChildCount();
+            int tid;
+            if (numrow <= 2) {
+                tid = 1;
+            } else {
+                TableRow lastrow = (TableRow) tl.getChildAt(numrow-1);
+                TextView lasttran = (TextView) lastrow.getChildAt(0);
+                tid = Integer.parseInt(lasttran.getText().toString().substring(0,2).trim())+1;
+            }
+            if (numrow >= 10) {
+                tl.removeViewAt(2);
+            }
+            trandbHandler.addHandler(tid,"Withdraw",minusamount);
+            TableRow row = new TableRow(this);
+            TextView tv = new TextView(this);
+            tv.setText(tid + " Withdraw " + "$" + minusamount);
+
+            tl.addView(row);
+            row.addView(tv);
         } else {
             Toast.makeText(MainActivity.this,"Withdraw failure!",Toast.LENGTH_LONG).show();
         }
