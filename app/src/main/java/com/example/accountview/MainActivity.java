@@ -164,7 +164,18 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             }
             textBalance.setText(balanceText);
         }
-        final String MAIL_TEXT = balanceText;
+        String mess = "<p>Hello " + CLIENT_NAME + ",<br />Your account balance is " + balanceText +
+                ".</p><table><tr><td><h4>Recent Transactions</h4></td></tr>";
+        TableLayout ta = (TableLayout)findViewById(R.id.tableTrac);
+        TableRow row;
+        TextView tv;
+        int numrow = ta.getChildCount();
+        for (int i = 2; i < numrow; i++) {
+            row = (TableRow)ta.getChildAt(i);
+            tv = (TextView)row.getChildAt(0);
+            mess = mess + "<tr><td>" + tv.getText().toString() + "</td></tr>";
+        }
+        final String MAIL_MESS = mess;
         try {
             new Thread(new Runnable() {
                 @Override
@@ -173,7 +184,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                         MailSender sender = new MailSender("dai.jiapeng54@gmail.com",
                                 "W123elcome");
                         sender.sendMail("Your Account Information",
-                                "Hello " + CLIENT_NAME + ", your account balance is " + MAIL_TEXT + ".",
+                                MAIL_MESS,
                                 "dai.jiapeng54@gmail.com", "dai.jiapeng54@gmail.com");
                         //Toast.makeText(MainActivity.this, "Sending account statement to your email",Toast.LENGTH_LONG).show();
                     } catch (Exception e) {
